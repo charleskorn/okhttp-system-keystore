@@ -3,7 +3,9 @@
         "config:base",
         ":prHourlyLimitNone",
         ":prConcurrentLimitNone",
-        ":switchToGradleLite"
+        ":switchToGradleLite",
+        ":disableDependencyDashboard",
+        "docker:enableMajor"
     ],
     "reviewers": [
         "charleskorn"
