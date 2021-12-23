@@ -1,0 +1,37 @@
+{
+    "extends": [
+        "config:base",
+        ":prHourlyLimitNone",
+        ":prConcurrentLimitNone",
+        ":switchToGradleLite",
+    ],
+    "reviewers": [
+        "charleskorn"
+    ],
+    "automerge": true,
+    "labels": [
+        "is:dependency-update"
+    ],
+    "rebaseWhen": "behind-base-branch",
+    "packageRules": [
+        {
+            "groupName": "Kotlin",
+            "matchManagers": ["gradle-lite"],
+            "matchPackagePatterns": ["^org\\.jetbrains\\.kotlin\\."],
+            "matchDepTypes": ["plugin"]
+        },
+        {
+            "matchDatasources": ["maven"],
+            "matchPackagePatterns": ["\\.gradle\\.plugin$"],
+            "registryUrls": [
+                "https://repo.maven.apache.org/maven2/",
+                "https://plugins.gradle.org/m2/"
+            ]
+        },
+        {
+            "groupName": "Kotest",
+            "matchManagers": ["gradle-lite"],
+            "matchPackagePatterns": ["^io\\.kotest:", "^io\\.kotest\\."]
+        }
+    ]
+}
