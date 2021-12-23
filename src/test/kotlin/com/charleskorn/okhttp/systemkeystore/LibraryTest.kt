@@ -16,12 +16,11 @@
 
 package com.charleskorn.okhttp.systemkeystore
 
-import kotlin.test.Test
-import kotlin.test.assertTrue
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 
-class LibraryTest {
-    @Test fun someLibraryMethodReturnsTrue() {
-        val classUnderTest = Library()
-        assertTrue(classUnderTest.someLibraryMethod(), "someLibraryMethod should return 'true'")
+class LibraryTest : StringSpec({
+    "true should be true" {
+        true shouldBe true
     }
-}
+})
