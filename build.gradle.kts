@@ -14,6 +14,7 @@
     limitations under the License.
 */
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.nio.file.Files
 
 plugins {
@@ -35,6 +36,14 @@ dependencies {
 
 tasks.named<Wrapper>("wrapper") {
     distributionType = Wrapper.DistributionType.ALL
+}
+
+kotlin {
+    explicitApi()
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = "1.8"
 }
 
 java {

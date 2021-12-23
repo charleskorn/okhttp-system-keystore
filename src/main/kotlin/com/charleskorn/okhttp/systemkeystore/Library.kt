@@ -16,8 +16,8 @@
 
 package com.charleskorn.okhttp.systemkeystore
 
-class Library {
-    fun someLibraryMethod(): Boolean {
+public class Library {
+    public fun someLibraryMethod(): Boolean {
         return true
     }
 }
