@@ -13,6 +13,18 @@
         "is:dependency-update"
     ],
     "rebaseWhen": "behind-base-branch",
+    "regexManagers": [
+        {
+            "fileMatch": [
+                ".gradle.kts$"
+            ],
+            "matchStrings": [
+                "val ktlintVersion = \"(?<currentValue>[\\d.]*?)\""
+            ],
+            "datasourceTemplate": "maven",
+            "depNameTemplate": "com.pinterest:ktlint"
+        }
+    ],
     "packageRules": [
         {
             "groupName": "Kotlin",
