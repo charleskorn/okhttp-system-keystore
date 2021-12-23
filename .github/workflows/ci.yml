@@ -36,6 +36,13 @@ jobs:
           java-version: 17
           distribution: adopt
 
+      - name: Cache Gradle
+        id: cache-gradle
+        uses: actions/cache@v2.1.7
+        with:
+          path: ~/.gradle/wrapper/dists
+          key: gradle-wrapper-${{ hashFiles('gradle/wrapper/*') }}
+
       - name: Cache packages
         id: cache-packages
         uses: actions/cache@v2.1.7
