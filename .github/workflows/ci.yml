@@ -19,3 +19,30 @@ jobs:
           fetch-depth: 0
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1.0.4
+
+  test-and-publish:
+    name: "Test and publish"
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2.4.0
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2.5.0
+        with:
+          java-version: 17
+          distribution: adopt
+
+      - name: Cache packages
+        id: cache-packages
+        uses: actions/cache@v2.1.7
+        with:
+          path: ~/.gradle/caches
+          key: gradle-packages-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/*') }}
+          restore-keys: gradle-packages-${{ runner.os }}
+
+      - name: Build and test
+        run: ./gradlew --parallel check
