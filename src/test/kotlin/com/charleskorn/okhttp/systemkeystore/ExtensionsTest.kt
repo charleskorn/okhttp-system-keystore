@@ -16,11 +16,21 @@
 
 package com.charleskorn.okhttp.systemkeystore
 
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
-class LibraryTest : StringSpec({
-    "true should be true" {
-        true shouldBe true
+class ExtensionsTest : FunSpec({
+    val client = OkHttpClient.Builder()
+        .useOperatingSystemCertificateTrustStore()
+        .build()
+
+    test("should be able to connect to a site trusted by built-in certificates") {
+        val request = Request.Builder().get().url("https://google.com").build()
+
+        client.newCall(request).execute().use { response ->
+            response.code shouldBe 200
+        }
     }
 })

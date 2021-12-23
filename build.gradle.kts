@@ -14,6 +14,8 @@
     limitations under the License.
 */
 
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.nio.file.Files
 
@@ -29,9 +31,11 @@ repositories {
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    api("com.squareup.okhttp3:okhttp:4.9.3")
 
     testImplementation("io.kotest:kotest-runner-junit5:5.0.3")
     testImplementation("io.kotest:kotest-assertions-core:5.0.3")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.3")
 }
 
 tasks.named<Wrapper>("wrapper") {
@@ -69,4 +73,12 @@ spotless {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+
+    testLogging {
+        showExceptions = true
+        showStandardStreams = true
+        exceptionFormat = TestExceptionFormat.FULL
+
+        events = setOf(TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.STANDARD_ERROR, TestLogEvent.STANDARD_OUT)
+    }
 }

@@ -16,8 +16,6 @@
 
 package com.charleskorn.okhttp.systemkeystore
 
-public class Library {
-    public fun someLibraryMethod(): Boolean {
-        return true
-    }
-}
+import okhttp3.OkHttpClient
+
+public fun OkHttpClient.Builder.useOperatingSystemCertificateTrustStore(): OkHttpClient.Builder = this
