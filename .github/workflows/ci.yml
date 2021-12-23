@@ -1,0 +1,21 @@
+name: CI
+on: [push, pull_request]
+env:
+  GRADLE_OPTS: "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  validate-gradle-wrapper:
+    name: "Validate Gradle wrapper"
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2.4.0
+        with:
+          fetch-depth: 0
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1.0.4
