@@ -21,37 +21,30 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.tls.HandshakeCertificates
 import okhttp3.tls.HeldCertificate
-import java.net.InetAddress
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import javax.net.ssl.SSLHandshakeException
 
 // https://adambennett.dev/2021/09/mockwebserver-https/ is a very useful reference,
 // as is https://github.com/square/okhttp/blob/master/okhttp-tls/README.md.
 class ExtensionsTest : FunSpec({
+    val now = ZonedDateTime.now(ZoneId.of("UTC"))
+
+    val untrustedCertificate = UntrustedCertificate("Untrusted certificate for okhttp-system-keystore tests running at $now")
+    val untrustedServer = autoClose(createServer(untrustedCertificate.certificate))
+
+    // Important: we must add the certificate to the system keystore before we create the client below (as Java loads the list
+    // of certificates from the system when we configure the keystore below).
+    val trustedCertificate = autoClose(TrustedCertificate("Trusted certificate for okhttp-system-keystore tests running at $now"))
+    val trustedServer = autoClose(createServer(trustedCertificate.certificate))
+
     val client = OkHttpClient.Builder()
         .useOperatingSystemCertificateTrustStore()
         .build()
-
-    fun createUntrustedServer(): MockWebServer {
-        val localhost = InetAddress.getByName("localhost").canonicalHostName
-        val certificate = HeldCertificate.Builder()
-            .addSubjectAlternativeName(localhost)
-            .build()
-
-        val serverCertificates = HandshakeCertificates.Builder()
-            .heldCertificate(certificate)
-            .build()
-
-        val server = MockWebServer()
-        server.useHttps(serverCertificates.sslSocketFactory(), false)
-        server.start()
-
-        return server
-    }
-
-    val untrustedServer = autoClose(createUntrustedServer())
 
     context("connecting to a server that should be trusted by default") {
         test("should be able to make requests") {
@@ -77,4 +70,33 @@ class ExtensionsTest : FunSpec({
             exception.message shouldBe "PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target"
         }
     }
+
+    context("connecting to a server that presents a self-signed certificate trusted by the system trust store") {
+        test("should be able to make requests") {
+            val request = Request.Builder()
+                .get()
+                .url(trustedServer.url("/"))
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                response.code shouldBe 200
+            }
+        }
+    }
+
+    // TODO: Certificate indirectly trusted in OS trust store
 })
+
+private fun createServer(certificate: HeldCertificate): MockWebServer {
+    val serverCertificates = HandshakeCertificates.Builder()
+        .heldCertificate(certificate)
+        .build()
+
+    val server = MockWebServer()
+    server.useHttps(serverCertificates.sslSocketFactory(), false)
+    server.start()
+
+    server.enqueue(MockResponse().setResponseCode(200))
+
+    return server
+}

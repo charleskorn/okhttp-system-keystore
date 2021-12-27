@@ -17,5 +17,43 @@
 package com.charleskorn.okhttp.systemkeystore
 
 import okhttp3.OkHttpClient
+import java.security.KeyStore
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 
-public fun OkHttpClient.Builder.useOperatingSystemCertificateTrustStore(): OkHttpClient.Builder = this
+public fun OkHttpClient.Builder.useOperatingSystemCertificateTrustStore(): OkHttpClient.Builder {
+    val trustManagers = listOf(getDefaultTrustManager()) + getOSTrustManagers()
+    val trustManager = MultiX509TrustManager(trustManagers)
+
+    val sslContext = SSLContext.getInstance("TLS")
+    sslContext.init(null, arrayOf<TrustManager>(trustManager), null)
+
+    return this.sslSocketFactory(sslContext.socketFactory, trustManager)
+}
+
+private fun getDefaultTrustManager(): X509TrustManager {
+    val factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+    factory.init(null as KeyStore?)
+
+    return factory.trustManagers.single() as X509TrustManager
+}
+
+private fun getOSTrustManagers(): List<X509TrustManager> {
+    val osName = System.getProperty("os.name")
+
+    return when {
+        osName.startsWith("mac", ignoreCase = true) -> listOf(getMacTrustManager())
+        else -> emptyList()
+    }
+}
+
+private fun getMacTrustManager(): X509TrustManager {
+    val factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+    val osKeyStore = KeyStore.getInstance("KeychainStore")
+    osKeyStore.load(null, null)
+    factory.init(osKeyStore)
+
+    return factory.trustManagers.single() as X509TrustManager
+}
