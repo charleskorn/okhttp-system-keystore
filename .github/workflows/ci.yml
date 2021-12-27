@@ -51,6 +51,9 @@ jobs:
           key: gradle-packages-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/*') }}
           restore-keys: gradle-packages-${{ runner.os }}
 
+      - name: Allow modifying certificate trust settings without prompting
+        run: security authorizationdb write com.apple.trust-settings.user allow
+
       - name: Build and test
         run: ./gradlew --parallel check
 
