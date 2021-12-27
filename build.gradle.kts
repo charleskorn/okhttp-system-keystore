@@ -36,6 +36,7 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:5.0.3")
     testImplementation("io.kotest:kotest-assertions-core:5.0.3")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.3")
+    testImplementation("com.squareup.okhttp3:okhttp-tls:4.9.3")
 }
 
 tasks.named<Wrapper>("wrapper") {
@@ -69,6 +70,10 @@ spotless {
         ktlint(ktlintVersion)
         licenseHeader(kotlinLicenseHeader, "plugins|rootProject|import")
     }
+}
+
+tasks.named("spotlessKotlinCheck") {
+    mustRunAfter("test")
 }
 
 tasks.withType<Test> {
