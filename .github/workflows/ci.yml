@@ -21,8 +21,16 @@ jobs:
         uses: gradle/wrapper-validation-action@v1.0.4
 
   test-and-publish:
-    name: "Test and publish"
-    runs-on: macos-11
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+          - windows-2022
+          - macos-11
+
+    name: "Test (${{ matrix.os }})"
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Check out code
@@ -51,7 +59,8 @@ jobs:
           key: gradle-packages-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/*') }}
           restore-keys: gradle-packages-${{ runner.os }}
 
-      - name: Allow modifying certificate trust settings without prompting
+      - name: Allow modifying macOS certificate trust settings without prompting
+        if: startsWith(matrix.os, 'macos')
         run: sudo security authorizationdb write com.apple.trust-settings.user allow
 
       - name: Build and test
