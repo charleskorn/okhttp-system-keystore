@@ -20,6 +20,7 @@ import okhttp3.tls.HeldCertificate
 import java.net.InetAddress
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 
 internal class TrustedCertificate(private val commonName: String) : AutoCloseable {
     private val localhost = InetAddress.getByName("localhost").canonicalHostName
@@ -65,12 +66,12 @@ internal class TrustedCertificate(private val commonName: String) : AutoCloseabl
             .redirectErrorStream(true)
             .start()
 
-        val exitCode = process.waitFor()
+        if (!process.waitFor(60, TimeUnit.SECONDS)) {
+            throw RuntimeException("Process '${args.joinToString(" ")}' timed out with output: ${process.outputText}")
+        }
 
-        if (exitCode != 0) {
-            val output = process.inputReader(Charsets.UTF_8).readText()
-
-            throw RuntimeException("Process '${args.joinToString(" ")}' failed with exit code $exitCode and output: $output")
+        if (process.exitValue() != 0) {
+            throw RuntimeException("Process '${args.joinToString(" ")}' failed with exit code ${process.exitValue()} and output: ${process.outputText}")
         }
     }
 
@@ -83,3 +84,8 @@ internal class TrustedCertificate(private val commonName: String) : AutoCloseabl
         private val userKeychainPath = System.getProperty("user.home")!! + "/Library/Keychains/login.keychain-db"
     }
 }
+
+private val Process.outputText: String
+    get() {
+        return this.inputReader(Charsets.UTF_8).readText()
+    }
