@@ -66,12 +66,17 @@ internal class TrustedCertificate(private val commonName: String) : AutoCloseabl
             .redirectErrorStream(true)
             .start()
 
-        if (!process.waitFor(60, TimeUnit.SECONDS)) {
-            throw RuntimeException("Process '${args.joinToString(" ")}' timed out with output: ${process.outputText}")
-        }
+        try {
+            if (!process.waitFor(60, TimeUnit.SECONDS)) {
+                throw RuntimeException("Process '${args.joinToString(" ")}' timed out with output: ${process.outputText}")
+            }
 
-        if (process.exitValue() != 0) {
-            throw RuntimeException("Process '${args.joinToString(" ")}' failed with exit code ${process.exitValue()} and output: ${process.outputText}")
+            if (process.exitValue() != 0) {
+                throw RuntimeException("Process '${args.joinToString(" ")}' failed with exit code ${process.exitValue()} and output: ${process.outputText}")
+            }
+        } finally {
+            process.destroyForcibly()
+            process.waitFor()
         }
     }
 
