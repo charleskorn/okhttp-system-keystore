@@ -58,28 +58,6 @@ internal class TrustedCertificate(private val commonName: String) : AutoCloseabl
         runProcess("security", "delete-certificate", "-c", commonName, userKeychainPath)
     }
 
-    private fun runProcess(vararg args: String) {
-        val process = ProcessBuilder()
-            .command(*args)
-            .redirectOutput(ProcessBuilder.Redirect.PIPE)
-            .redirectError(ProcessBuilder.Redirect.PIPE)
-            .redirectErrorStream(true)
-            .start()
-
-        try {
-            if (!process.waitFor(60, TimeUnit.SECONDS)) {
-                throw RuntimeException("Process '${args.joinToString(" ")}' timed out with output: ${process.outputText}")
-            }
-
-            if (process.exitValue() != 0) {
-                throw RuntimeException("Process '${args.joinToString(" ")}' failed with exit code ${process.exitValue()} and output: ${process.outputText}")
-            }
-        } finally {
-            process.destroyForcibly()
-            process.waitFor()
-        }
-    }
-
     override fun close() {
         removeFromLocalTrustStore()
         removeCertificateFile()
@@ -87,6 +65,28 @@ internal class TrustedCertificate(private val commonName: String) : AutoCloseabl
 
     companion object {
         private val userKeychainPath = System.getProperty("user.home")!! + "/Library/Keychains/login.keychain-db"
+
+        private fun runProcess(vararg args: String) {
+            val process = ProcessBuilder()
+                .command(*args)
+                .redirectOutput(ProcessBuilder.Redirect.PIPE)
+                .redirectError(ProcessBuilder.Redirect.PIPE)
+                .redirectErrorStream(true)
+                .start()
+
+            try {
+                if (!process.waitFor(60, TimeUnit.SECONDS)) {
+                    throw RuntimeException("Process '${args.joinToString(" ")}' timed out with output: ${process.outputText}")
+                }
+
+                if (process.exitValue() != 0) {
+                    throw RuntimeException("Process '${args.joinToString(" ")}' failed with exit code ${process.exitValue()} and output: ${process.outputText}")
+                }
+            } finally {
+                process.destroyForcibly()
+                process.waitFor()
+            }
+        }
     }
 }
 
