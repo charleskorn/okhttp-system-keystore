@@ -19,6 +19,8 @@ package com.charleskorn.okhttp.systemkeystore
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.mockwebserver.MockResponse
@@ -46,41 +48,45 @@ class ExtensionsTest : FunSpec({
         .useOperatingSystemCertificateTrustStore()
         .build()
 
+    fun requestShouldSucceed(url: HttpUrl) {
+        val request = Request.Builder()
+            .get()
+            .url(url)
+            .build()
+
+        client.newCall(request).execute().use { response ->
+            response.code shouldBe 200
+        }
+    }
+
+    fun requestShouldFailWithInvalidCertificateError(url: HttpUrl) {
+        val request = Request.Builder()
+            .get()
+            .url(url)
+            .build()
+
+        val exception = shouldThrow<SSLHandshakeException> {
+            client.newCall(request).execute()
+        }
+
+        exception.message shouldBe "PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target"
+    }
+
     context("connecting to a server that should be trusted by default") {
         test("should be able to make requests") {
-            val request = Request.Builder().get().url("https://google.com").build()
-
-            client.newCall(request).execute().use { response ->
-                response.code shouldBe 200
-            }
+            requestShouldSucceed("https://google.com".toHttpUrl())
         }
     }
 
     context("connecting to a server that presents an untrusted certificate") {
         test("should throw an exception") {
-            val request = Request.Builder()
-                .get()
-                .url(untrustedServer.url("/"))
-                .build()
-
-            val exception = shouldThrow<SSLHandshakeException> {
-                client.newCall(request).execute()
-            }
-
-            exception.message shouldBe "PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target"
+            requestShouldFailWithInvalidCertificateError(untrustedServer.url("/"))
         }
     }
 
     context("connecting to a server that presents a self-signed certificate trusted by the system trust store") {
         test("should be able to make requests") {
-            val request = Request.Builder()
-                .get()
-                .url(trustedServer.url("/"))
-                .build()
-
-            client.newCall(request).execute().use { response ->
-                response.code shouldBe 200
-            }
+            requestShouldSucceed(trustedServer.url("/"))
         }
     }
 
