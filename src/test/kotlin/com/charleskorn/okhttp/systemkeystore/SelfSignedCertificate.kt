@@ -17,18 +17,20 @@
 package com.charleskorn.okhttp.systemkeystore
 
 import okhttp3.tls.HeldCertificate
-import java.net.InetAddress
 
-class UntrustedCertificate(commonName: String) : SelfSignedCertificate {
-    private val localhost = InetAddress.getByName("localhost").canonicalHostName
+internal interface SelfSignedCertificate : AutoCloseable {
+    val certificate: HeldCertificate
 
-    override val certificate = HeldCertificate.Builder()
-        .addSubjectAlternativeName(localhost)
-        .organizationalUnit(UntrustedCertificate::class.java.packageName)
-        .commonName(commonName)
-        .build()
+    companion object {
+        fun createUntrusted(commonName: String): SelfSignedCertificate {
+            return UntrustedCertificate(commonName)
+        }
 
-    override fun close() {
-        // Nothing to do.
+        fun createAndTrustIfSupported(commonName: String): SelfSignedCertificate {
+            return when (OperatingSystem.current) {
+                OperatingSystem.Mac -> TrustedCertificate(commonName)
+                OperatingSystem.Other -> UntrustedCertificate(commonName)
+            }
+        }
     }
 }

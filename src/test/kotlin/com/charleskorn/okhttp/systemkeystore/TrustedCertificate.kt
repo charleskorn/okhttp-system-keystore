@@ -22,10 +22,10 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
-internal class TrustedCertificate(private val commonName: String) : AutoCloseable {
+internal class TrustedCertificate(private val commonName: String) : SelfSignedCertificate {
     private val localhost = InetAddress.getByName("localhost").canonicalHostName
 
-    val certificate = HeldCertificate.Builder()
+    override val certificate = HeldCertificate.Builder()
         .addSubjectAlternativeName(localhost)
         .organizationalUnit(TrustedCertificate::class.java.packageName)
         .commonName(commonName)

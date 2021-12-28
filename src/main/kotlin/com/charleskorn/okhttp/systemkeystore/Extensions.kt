@@ -41,11 +41,9 @@ private fun getDefaultTrustManager(): X509TrustManager {
 }
 
 private fun getOSTrustManagers(): List<X509TrustManager> {
-    val osName = System.getProperty("os.name")
-
-    return when {
-        osName.startsWith("mac", ignoreCase = true) -> listOf(getMacTrustManager())
-        else -> emptyList()
+    return when (OperatingSystem.current) {
+        OperatingSystem.Mac -> listOf(getMacTrustManager())
+        OperatingSystem.Other -> emptyList()
     }
 }
 

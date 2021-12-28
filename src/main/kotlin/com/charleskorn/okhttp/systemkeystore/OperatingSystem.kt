@@ -16,19 +16,20 @@
 
 package com.charleskorn.okhttp.systemkeystore
 
-import okhttp3.tls.HeldCertificate
-import java.net.InetAddress
+internal enum class OperatingSystem {
+    Mac,
+    Other;
 
-class UntrustedCertificate(commonName: String) : SelfSignedCertificate {
-    private val localhost = InetAddress.getByName("localhost").canonicalHostName
+    companion object {
+        internal val current: OperatingSystem = determineCurrentOperatingSystem()
 
-    override val certificate = HeldCertificate.Builder()
-        .addSubjectAlternativeName(localhost)
-        .organizationalUnit(UntrustedCertificate::class.java.packageName)
-        .commonName(commonName)
-        .build()
+        private fun determineCurrentOperatingSystem(): OperatingSystem {
+            val osName = System.getProperty("os.name")
 
-    override fun close() {
-        // Nothing to do.
+            return when {
+                osName.startsWith("mac", ignoreCase = true) -> Mac
+                else -> Other
+            }
+        }
     }
 }
