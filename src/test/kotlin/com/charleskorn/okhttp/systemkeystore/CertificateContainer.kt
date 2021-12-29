@@ -22,17 +22,13 @@ import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
 internal interface CertificateContainer : AutoCloseable {
-    val certificate: SelfSignedCertificate
+    val certificate: TestCertificate
     val heldCertificate: HeldCertificate
-        get() = certificate.certificate
+        get() = certificate.heldCertificate
 
     companion object {
-        fun createUntrusted(commonName: String): CertificateContainer {
-            return UntrustedCertificateContainer(SelfSignedCertificate(commonName))
-        }
-
-        fun createAndTrustIfSupported(commonName: String): CertificateContainer {
-            val certificate = SelfSignedCertificate(commonName)
+        fun createAndTrustIfSupported(commonName: String, isCertificateAuthority: Boolean = false): CertificateContainer {
+            val certificate = TestCertificate(commonName, isCertificateAuthority)
 
             return when (OperatingSystem.current) {
                 OperatingSystem.Mac -> MacKeychainTrustedCertificateContainer(certificate).also { it.addToLocalTrustStore() }
@@ -42,13 +38,13 @@ internal interface CertificateContainer : AutoCloseable {
     }
 }
 
-internal class UntrustedCertificateContainer(override val certificate: SelfSignedCertificate) : CertificateContainer {
+internal class UntrustedCertificateContainer(override val certificate: TestCertificate) : CertificateContainer {
     override fun close() {
         // Nothing to do.
     }
 }
 
-internal abstract class TrustedCertificateContainer(override val certificate: SelfSignedCertificate) : CertificateContainer {
+internal abstract class TrustedCertificateContainer(override val certificate: TestCertificate) : CertificateContainer {
     private lateinit var certificatePath: Path
 
     fun addToLocalTrustStore() {
@@ -77,7 +73,7 @@ internal abstract class TrustedCertificateContainer(override val certificate: Se
     protected abstract fun removeFromLocalTrustStore(certificatePath: Path)
 }
 
-internal class MacKeychainTrustedCertificateContainer(certificate: SelfSignedCertificate) :
+internal class MacKeychainTrustedCertificateContainer(certificate: TestCertificate) :
     TrustedCertificateContainer(certificate) {
     override fun addToLocalTrustStore(certificatePath: Path) {
         runProcess("security", "add-trusted-cert", "-p", "ssl", "-r", "trustRoot", "-k", userKeychainPath, certificatePath.toString())
