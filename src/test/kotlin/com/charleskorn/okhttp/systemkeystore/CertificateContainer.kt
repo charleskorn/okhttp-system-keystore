@@ -17,50 +17,75 @@
 package com.charleskorn.okhttp.systemkeystore
 
 import okhttp3.tls.HeldCertificate
-import java.net.InetAddress
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
-internal class TrustedCertificate(private val commonName: String) : SelfSignedCertificate {
-    private val localhost = InetAddress.getByName("localhost").canonicalHostName
+internal interface CertificateContainer : AutoCloseable {
+    val certificate: SelfSignedCertificate
+    val heldCertificate: HeldCertificate
+        get() = certificate.certificate
 
-    override val certificate = HeldCertificate.Builder()
-        .addSubjectAlternativeName(localhost)
-        .organizationalUnit(TrustedCertificate::class.java.packageName)
-        .commonName(commonName)
-        .build()
+    companion object {
+        fun createUntrusted(commonName: String): CertificateContainer {
+            return UntrustedCertificateContainer(SelfSignedCertificate(commonName))
+        }
 
-    private val certificatePath = writeToTemporaryFile()
+        fun createAndTrustIfSupported(commonName: String): CertificateContainer {
+            val certificate = SelfSignedCertificate(commonName)
 
-    init {
-        addToLocalTrustStore()
+            return when (OperatingSystem.current) {
+                OperatingSystem.Mac -> MacKeychainTrustedCertificateContainer(certificate).also { it.addToLocalTrustStore() }
+                OperatingSystem.Other -> UntrustedCertificateContainer(certificate)
+            }
+        }
+    }
+}
+
+internal class UntrustedCertificateContainer(override val certificate: SelfSignedCertificate) : CertificateContainer {
+    override fun close() {
+        // Nothing to do.
+    }
+}
+
+internal abstract class TrustedCertificateContainer(override val certificate: SelfSignedCertificate) : CertificateContainer {
+    private lateinit var certificatePath: Path
+
+    fun addToLocalTrustStore() {
+        certificatePath = writeToTemporaryFile()
+        addToLocalTrustStore(certificatePath)
     }
 
     private fun writeToTemporaryFile(): Path {
-        val path = Files.createTempFile("okhttp-systemkeystore-$commonName", ".pem")
+        val path = Files.createTempFile("okhttp-systemkeystore-${certificate.commonName}", ".pem")
 
-        Files.write(path, certificate.certificatePem().toByteArray(Charsets.UTF_8))
+        Files.write(path, heldCertificate.certificatePem().toByteArray(Charsets.UTF_8))
 
         return path
+    }
+
+    override fun close() {
+        removeFromLocalTrustStore(certificatePath)
+        removeCertificateFile()
     }
 
     private fun removeCertificateFile() {
         Files.delete(certificatePath)
     }
 
-    private fun addToLocalTrustStore() {
+    protected abstract fun addToLocalTrustStore(certificatePath: Path)
+    protected abstract fun removeFromLocalTrustStore(certificatePath: Path)
+}
+
+internal class MacKeychainTrustedCertificateContainer(certificate: SelfSignedCertificate) :
+    TrustedCertificateContainer(certificate) {
+    override fun addToLocalTrustStore(certificatePath: Path) {
         runProcess("security", "add-trusted-cert", "-p", "ssl", "-r", "trustRoot", "-k", userKeychainPath, certificatePath.toString())
     }
 
-    private fun removeFromLocalTrustStore() {
+    override fun removeFromLocalTrustStore(certificatePath: Path) {
         runProcess("security", "remove-trusted-cert", certificatePath.toString())
-        runProcess("security", "delete-certificate", "-c", commonName, userKeychainPath)
-    }
-
-    override fun close() {
-        removeFromLocalTrustStore()
-        removeCertificateFile()
+        runProcess("security", "delete-certificate", "-c", certificate.commonName, userKeychainPath)
     }
 
     companion object {

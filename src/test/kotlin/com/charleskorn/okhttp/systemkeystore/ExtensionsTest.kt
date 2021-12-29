@@ -36,13 +36,13 @@ import javax.net.ssl.SSLHandshakeException
 class ExtensionsTest : FunSpec({
     val now = ZonedDateTime.now(ZoneId.of("UTC"))
 
-    val untrustedCertificate = autoClose(SelfSignedCertificate.createUntrusted("Untrusted certificate for okhttp-system-keystore tests running at $now"))
-    val untrustedServer = autoClose(createServer(untrustedCertificate.certificate))
+    val untrustedCertificate = autoClose(CertificateContainer.createUntrusted("Untrusted certificate for okhttp-system-keystore tests running at $now"))
+    val untrustedServer = autoClose(createServer(untrustedCertificate.heldCertificate))
 
     // Important: we must add the certificate to the system keystore before we create the client below (as Java loads the list
     // of certificates from the system when we configure the keystore below).
-    val trustedCertificate = autoClose(SelfSignedCertificate.createAndTrustIfSupported("Trusted certificate for okhttp-system-keystore tests running at $now"))
-    val trustedServer = autoClose(createServer(trustedCertificate.certificate))
+    val trustedCertificate = autoClose(CertificateContainer.createAndTrustIfSupported("Trusted certificate for okhttp-system-keystore tests running at $now"))
+    val trustedServer = autoClose(createServer(trustedCertificate.heldCertificate))
 
     val client = OkHttpClient.Builder()
         .useOperatingSystemCertificateTrustStore()

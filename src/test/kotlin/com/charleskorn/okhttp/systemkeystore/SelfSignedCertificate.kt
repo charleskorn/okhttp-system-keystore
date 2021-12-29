@@ -17,20 +17,14 @@
 package com.charleskorn.okhttp.systemkeystore
 
 import okhttp3.tls.HeldCertificate
+import java.net.InetAddress
 
-internal interface SelfSignedCertificate : AutoCloseable {
-    val certificate: HeldCertificate
+internal class SelfSignedCertificate(val commonName: String) {
+    private val localhost = InetAddress.getByName("localhost").canonicalHostName
 
-    companion object {
-        fun createUntrusted(commonName: String): SelfSignedCertificate {
-            return UntrustedCertificate(commonName)
-        }
-
-        fun createAndTrustIfSupported(commonName: String): SelfSignedCertificate {
-            return when (OperatingSystem.current) {
-                OperatingSystem.Mac -> TrustedCertificate(commonName)
-                OperatingSystem.Other -> UntrustedCertificate(commonName)
-            }
-        }
-    }
+    internal val certificate = HeldCertificate.Builder()
+        .addSubjectAlternativeName(localhost)
+        .organizationalUnit(SelfSignedCertificate::class.java.packageName)
+        .commonName(commonName)
+        .build()
 }
