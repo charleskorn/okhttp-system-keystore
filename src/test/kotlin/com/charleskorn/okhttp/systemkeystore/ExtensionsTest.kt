@@ -59,7 +59,7 @@ class ExtensionsTest : FunSpec({
         }
     }
 
-    fun requestShouldFailWithInvalidCertificateError(url: HttpUrl) {
+    fun requestShouldFailWithUntrustedCertificateError(url: HttpUrl) {
         val request = Request.Builder()
             .get()
             .url(url)
@@ -80,7 +80,7 @@ class ExtensionsTest : FunSpec({
 
     context("connecting to a server that presents an untrusted certificate") {
         test("should throw an exception") {
-            requestShouldFailWithInvalidCertificateError(untrustedServer.url("/"))
+            requestShouldFailWithUntrustedCertificateError(untrustedServer.url("/"))
         }
     }
 
@@ -95,7 +95,7 @@ class ExtensionsTest : FunSpec({
             }
             OperatingSystem.Other -> {
                 test("should throw an exception") {
-                    requestShouldFailWithInvalidCertificateError(url)
+                    requestShouldFailWithUntrustedCertificateError(url)
                 }
             }
         }
