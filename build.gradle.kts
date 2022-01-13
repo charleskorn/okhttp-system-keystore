@@ -21,7 +21,7 @@ import java.nio.file.Files
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.6.10"
-    id("com.diffplug.spotless") version "6.1.2"
+    id("com.diffplug.spotless") version "6.2.0"
 }
 
 repositories {
