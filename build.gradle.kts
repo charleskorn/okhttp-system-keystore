@@ -34,7 +34,7 @@ dependencies {
     api("com.squareup.okhttp3:okhttp:4.9.3")
 
     testImplementation("io.kotest:kotest-runner-junit5:5.1.0")
-    testImplementation("io.kotest:kotest-assertions-core:5.0.3")
+    testImplementation("io.kotest:kotest-assertions-core:5.1.0")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.3")
     testImplementation("com.squareup.okhttp3:okhttp-tls:4.9.3")
 }
