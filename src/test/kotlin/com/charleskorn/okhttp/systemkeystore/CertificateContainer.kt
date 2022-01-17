@@ -27,12 +27,12 @@ internal interface CertificateContainer : AutoCloseable {
         get() = certificate.heldCertificate
 
     companion object {
-        fun createAndTrustIfSupported(commonName: String, isCertificateAuthority: Boolean = false): CertificateContainer {
+        fun createAndTrust(commonName: String, isCertificateAuthority: Boolean = false): CertificateContainer {
             val certificate = TestCertificate(commonName, isCertificateAuthority)
 
             return when (OperatingSystem.current) {
                 OperatingSystem.Mac -> MacKeychainTrustedCertificateContainer(certificate).also { it.addToLocalTrustStore() }
-                OperatingSystem.Other -> UntrustedCertificateContainer(certificate)
+                OperatingSystem.Other -> throw UnsupportedOperationException("Can't trust certificates on this operating system.")
             }
         }
     }

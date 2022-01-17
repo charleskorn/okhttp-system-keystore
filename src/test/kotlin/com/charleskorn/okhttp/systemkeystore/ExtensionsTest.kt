@@ -17,6 +17,7 @@
 package com.charleskorn.okhttp.systemkeystore
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import okhttp3.HttpUrl
@@ -33,26 +34,15 @@ import javax.net.ssl.SSLHandshakeException
 
 // https://adambennett.dev/2021/09/mockwebserver-https/ is a very useful reference,
 // as is https://github.com/square/okhttp/blob/master/okhttp-tls/README.md.
+@ExperimentalKotest
 class ExtensionsTest : FunSpec({
     val now = ZonedDateTime.now(ZoneId.of("UTC"))
 
-    val untrustedCertificate = TestCertificate("Untrusted certificate for okhttp-system-keystore tests running at $now")
-    val untrustedServer = autoClose(createServer(untrustedCertificate.heldCertificate))
-
-    // Important: we must add the certificate to the system keystore before we create the client below (as Java loads the list
-    // of certificates from the system when we configure the keystore below).
-    val trustedCertificate = autoClose(CertificateContainer.createAndTrustIfSupported("Trusted certificate for okhttp-system-keystore tests running at $now"))
-    val trustedServer = autoClose(createServer(trustedCertificate.heldCertificate))
-
-    val trustedCACertificate = autoClose(CertificateContainer.createAndTrustIfSupported("Trusted CA certificate for okhttp-system-keystore tests running at $now", isCertificateAuthority = true))
-    val serverCertificateFromTrustedCA = TestCertificate("Server certificate signed by trusted CA certificate", signedBy = trustedCACertificate.certificate)
-    val serverUsingCertificateFromTrustedCA = autoClose(createServer(serverCertificateFromTrustedCA.heldCertificate))
-
-    val client = OkHttpClient.Builder()
-        .useOperatingSystemCertificateTrustStore()
-        .build()
-
     fun requestShouldSucceed(url: HttpUrl) {
+        val client = OkHttpClient.Builder()
+            .useOperatingSystemCertificateTrustStore()
+            .build()
+
         val request = Request.Builder()
             .get()
             .url(url)
@@ -64,6 +54,10 @@ class ExtensionsTest : FunSpec({
     }
 
     fun requestShouldFailWithUntrustedCertificateError(url: HttpUrl) {
+        val client = OkHttpClient.Builder()
+            .useOperatingSystemCertificateTrustStore()
+            .build()
+
         val request = Request.Builder()
             .get()
             .url(url)
@@ -83,41 +77,33 @@ class ExtensionsTest : FunSpec({
     }
 
     context("connecting to a server that presents an untrusted certificate") {
+        val untrustedCertificate = TestCertificate("Untrusted certificate for okhttp-system-keystore tests running at $now")
+        val untrustedServer = autoClose(createServer(untrustedCertificate.heldCertificate))
+
         test("should throw an exception") {
             requestShouldFailWithUntrustedCertificateError(untrustedServer.url("/"))
         }
     }
 
-    context("connecting to a server that presents a self-signed certificate trusted by the system trust store") {
-        val url = trustedServer.url("/")
+    context("when running on macOS").config(enabled = OperatingSystem.current == OperatingSystem.Mac) {
+        context("connecting to a server that presents a self-signed certificate trusted by the system trust store") {
+            val trustedCertificate = autoClose(CertificateContainer.createAndTrust("Trusted certificate for okhttp-system-keystore tests running at $now"))
+            val trustedServer = autoClose(createServer(trustedCertificate.heldCertificate))
+            val url = trustedServer.url("/")
 
-        when (OperatingSystem.current) {
-            OperatingSystem.Mac -> {
-                test("should be able to make requests") {
-                    requestShouldSucceed(url)
-                }
-            }
-            OperatingSystem.Other -> {
-                test("should throw an exception") {
-                    requestShouldFailWithUntrustedCertificateError(url)
-                }
+            test("should be able to make requests") {
+                requestShouldSucceed(url)
             }
         }
-    }
 
-    context("connecting to a server that presents a certificate signed by a CA trusted by the system trust store") {
-        val url = serverUsingCertificateFromTrustedCA.url("/")
+        context("connecting to a server that presents a certificate signed by a CA trusted by the system trust store") {
+            val trustedCACertificate = autoClose(CertificateContainer.createAndTrust("Trusted CA certificate for okhttp-system-keystore tests running at $now", isCertificateAuthority = true))
+            val serverCertificateFromTrustedCA = TestCertificate("Server certificate signed by trusted CA certificate", signedBy = trustedCACertificate.certificate)
+            val serverUsingCertificateFromTrustedCA = autoClose(createServer(serverCertificateFromTrustedCA.heldCertificate))
+            val url = serverUsingCertificateFromTrustedCA.url("/")
 
-        when (OperatingSystem.current) {
-            OperatingSystem.Mac -> {
-                test("should be able to make requests") {
-                    requestShouldSucceed(url)
-                }
-            }
-            OperatingSystem.Other -> {
-                test("should throw an exception") {
-                    requestShouldFailWithUntrustedCertificateError(url)
-                }
+            test("should be able to make requests") {
+                requestShouldSucceed(url)
             }
         }
     }
