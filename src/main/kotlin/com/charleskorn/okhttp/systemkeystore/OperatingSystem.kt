@@ -18,6 +18,7 @@ package com.charleskorn.okhttp.systemkeystore
 
 internal enum class OperatingSystem {
     Mac,
+    Windows,
     Other;
 
     companion object {
@@ -28,6 +29,7 @@ internal enum class OperatingSystem {
 
             return when {
                 osName.startsWith("mac", ignoreCase = true) -> Mac
+                osName.startsWith("windows", ignoreCase = true) -> Windows
                 else -> Other
             }
         }

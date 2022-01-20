@@ -21,30 +21,10 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
-internal interface CertificateContainer : AutoCloseable {
-    val certificate: TestCertificate
+internal abstract class TrustedCertificateContainer(val certificate: TestCertificate) : AutoCloseable {
     val heldCertificate: HeldCertificate
         get() = certificate.heldCertificate
 
-    companion object {
-        fun createAndTrust(commonName: String, isCertificateAuthority: Boolean = false): CertificateContainer {
-            val certificate = TestCertificate(commonName, isCertificateAuthority)
-
-            return when (OperatingSystem.current) {
-                OperatingSystem.Mac -> MacKeychainTrustedCertificateContainer(certificate).also { it.addToLocalTrustStore() }
-                OperatingSystem.Other -> throw UnsupportedOperationException("Can't trust certificates on this operating system.")
-            }
-        }
-    }
-}
-
-internal class UntrustedCertificateContainer(override val certificate: TestCertificate) : CertificateContainer {
-    override fun close() {
-        // Nothing to do.
-    }
-}
-
-internal abstract class TrustedCertificateContainer(override val certificate: TestCertificate) : CertificateContainer {
     private lateinit var certificatePath: Path
 
     fun addToLocalTrustStore() {
@@ -73,8 +53,7 @@ internal abstract class TrustedCertificateContainer(override val certificate: Te
     protected abstract fun removeFromLocalTrustStore(certificatePath: Path)
 }
 
-internal class MacKeychainTrustedCertificateContainer(certificate: TestCertificate) :
-    TrustedCertificateContainer(certificate) {
+internal class MacKeychainTrustedCertificateContainer(certificate: TestCertificate) : TrustedCertificateContainer(certificate) {
     override fun addToLocalTrustStore(certificatePath: Path) {
         runProcess("security", "add-trusted-cert", "-p", "ssl", "-r", "trustRoot", "-k", userKeychainPath, certificatePath.toString())
     }
@@ -87,27 +66,59 @@ internal class MacKeychainTrustedCertificateContainer(certificate: TestCertifica
     companion object {
         private val userKeychainPath = System.getProperty("user.home")!! + "/Library/Keychains/login.keychain-db"
 
-        private fun runProcess(vararg args: String) {
-            val process = ProcessBuilder()
-                .command(*args)
-                .redirectOutput(ProcessBuilder.Redirect.PIPE)
-                .redirectError(ProcessBuilder.Redirect.PIPE)
-                .redirectErrorStream(true)
-                .start()
-
-            try {
-                if (!process.waitFor(60, TimeUnit.SECONDS)) {
-                    throw RuntimeException("Process '${args.joinToString(" ")}' timed out with output: ${process.outputText}")
-                }
-
-                if (process.exitValue() != 0) {
-                    throw RuntimeException("Process '${args.joinToString(" ")}' failed with exit code ${process.exitValue()} and output: ${process.outputText}")
-                }
-            } finally {
-                process.destroyForcibly()
-                process.waitFor()
-            }
+        fun createAndTrust(commonName: String, isCertificateAuthority: Boolean = false): TrustedCertificateContainer {
+            val certificate = TestCertificate(commonName, isCertificateAuthority)
+            return MacKeychainTrustedCertificateContainer(certificate).also { it.addToLocalTrustStore() }
         }
+    }
+}
+
+internal class WindowsTrustedCertificateContainer(certificate: TestCertificate, scope: CertificateScope) : TrustedCertificateContainer(certificate) {
+    private val certutilScopeParameters: Array<String> = when (scope) {
+        CertificateScope.User -> arrayOf("-user")
+        CertificateScope.Machine -> emptyArray()
+    }
+
+    override fun addToLocalTrustStore(certificatePath: Path) {
+        runProcess("certutil", *certutilScopeParameters, "-addstore", "root", certificatePath.toString())
+    }
+
+    override fun removeFromLocalTrustStore(certificatePath: Path) {
+        runProcess("certutil", *certutilScopeParameters, "-delstore", "root", certificatePath.toString())
+    }
+
+    companion object {
+        fun createAndTrust(commonName: String, scope: CertificateScope, isCertificateAuthority: Boolean = false): TrustedCertificateContainer {
+            val certificate = TestCertificate(commonName, isCertificateAuthority)
+            return WindowsTrustedCertificateContainer(certificate, scope).also { it.addToLocalTrustStore() }
+        }
+    }
+}
+
+enum class CertificateScope {
+    User,
+    Machine
+}
+
+private fun runProcess(vararg args: String) {
+    val process = ProcessBuilder()
+        .command(*args)
+        .redirectOutput(ProcessBuilder.Redirect.PIPE)
+        .redirectError(ProcessBuilder.Redirect.PIPE)
+        .redirectErrorStream(true)
+        .start()
+
+    try {
+        if (!process.waitFor(60, TimeUnit.SECONDS)) {
+            throw RuntimeException("Process '${args.joinToString(" ")}' timed out with output: ${process.outputText}")
+        }
+
+        if (process.exitValue() != 0) {
+            throw RuntimeException("Process '${args.joinToString(" ")}' failed with exit code ${process.exitValue()} and output: ${process.outputText}")
+        }
+    } finally {
+        process.destroyForcibly()
+        process.waitFor()
     }
 }
 

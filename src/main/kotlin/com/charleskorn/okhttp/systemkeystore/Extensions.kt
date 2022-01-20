@@ -33,25 +33,29 @@ public fun OkHttpClient.Builder.useOperatingSystemCertificateTrustStore(): OkHtt
     return this.sslSocketFactory(sslContext.socketFactory, trustManager)
 }
 
-private fun getDefaultTrustManager(): X509TrustManager {
-    val factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-    factory.init(null as KeyStore?)
-
-    return factory.trustManagers.single() as X509TrustManager
-}
+private fun getDefaultTrustManager(): X509TrustManager = buildTrustManagerForKeyStore(null)
 
 private fun getOSTrustManagers(): List<X509TrustManager> {
     return when (OperatingSystem.current) {
-        OperatingSystem.Mac -> listOf(getMacTrustManager())
+        OperatingSystem.Mac -> listOf(buildMacTrustManager())
+        OperatingSystem.Windows -> listOf(buildWindowsUserTrustManager())
         OperatingSystem.Other -> emptyList()
     }
 }
 
-private fun getMacTrustManager(): X509TrustManager {
-    val factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-    val osKeyStore = KeyStore.getInstance("KeychainStore")
+private fun buildMacTrustManager(): X509TrustManager = buildTrustManagerForKeyStoreType("KeychainStore")
+private fun buildWindowsUserTrustManager(): X509TrustManager = buildTrustManagerForKeyStoreType("Windows-ROOT")
+
+private fun buildTrustManagerForKeyStoreType(name: String): X509TrustManager {
+    val osKeyStore = KeyStore.getInstance(name)
     osKeyStore.load(null, null)
-    factory.init(osKeyStore)
+
+    return buildTrustManagerForKeyStore(osKeyStore)
+}
+
+private fun buildTrustManagerForKeyStore(keyStore: KeyStore?): X509TrustManager {
+    val factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+    factory.init(keyStore)
 
     return factory.trustManagers.single() as X509TrustManager
 }
