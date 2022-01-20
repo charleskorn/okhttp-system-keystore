@@ -53,6 +53,7 @@ internal abstract class TrustedCertificateContainer(val certificate: TestCertifi
     protected abstract fun removeFromLocalTrustStore(certificatePath: Path)
 }
 
+// This adds a certificate at the user level.
 internal class MacKeychainTrustedCertificateContainer(certificate: TestCertificate) : TrustedCertificateContainer(certificate) {
     override fun addToLocalTrustStore(certificatePath: Path) {
         runProcess("security", "add-trusted-cert", "-p", "ssl", "-r", "trustRoot", "-k", userKeychainPath, certificatePath.toString())
@@ -73,31 +74,25 @@ internal class MacKeychainTrustedCertificateContainer(certificate: TestCertifica
     }
 }
 
-internal class WindowsTrustedCertificateContainer(certificate: TestCertificate, scope: CertificateScope) : TrustedCertificateContainer(certificate) {
-    private val certutilScopeParameters: Array<String> = when (scope) {
-        CertificateScope.User -> arrayOf("-user")
-        CertificateScope.Machine -> emptyArray()
-    }
-
+// This adds a certificate at the machine level.
+// FIXME: Adding certificates at the user level requires clicking 'Yes' on a dialog, and there's no way to avoid this, making automated tests painful.
+// I've manually verified that certificates trusted at the user level are also trusted by the Windows-ROOT JVM KeyStore (see the tests that were
+// removed in the commit where this commit was added).
+internal class WindowsTrustedCertificateContainer(certificate: TestCertificate) : TrustedCertificateContainer(certificate) {
     override fun addToLocalTrustStore(certificatePath: Path) {
-        runProcess("certutil", *certutilScopeParameters, "-addstore", "root", certificatePath.toString())
+        runProcess("certutil", "-addstore", "root", certificatePath.toString())
     }
 
     override fun removeFromLocalTrustStore(certificatePath: Path) {
-        runProcess("certutil", *certutilScopeParameters, "-delstore", "root", certificatePath.toString())
+        runProcess("certutil", "-delstore", "root", certificatePath.toString())
     }
 
     companion object {
-        fun createAndTrust(commonName: String, scope: CertificateScope, isCertificateAuthority: Boolean = false): TrustedCertificateContainer {
+        fun createAndTrust(commonName: String, isCertificateAuthority: Boolean = false): TrustedCertificateContainer {
             val certificate = TestCertificate(commonName, isCertificateAuthority)
-            return WindowsTrustedCertificateContainer(certificate, scope).also { it.addToLocalTrustStore() }
+            return WindowsTrustedCertificateContainer(certificate).also { it.addToLocalTrustStore() }
         }
     }
-}
-
-enum class CertificateScope {
-    User,
-    Machine
 }
 
 private fun runProcess(vararg args: String) {

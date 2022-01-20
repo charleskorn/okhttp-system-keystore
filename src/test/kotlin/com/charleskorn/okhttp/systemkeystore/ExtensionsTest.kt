@@ -110,29 +110,8 @@ class ExtensionsTest : FunSpec({
     }
 
     context("when running on Windows").config(enabled = OperatingSystem.current == OperatingSystem.Windows) {
-        context("connecting to a server that presents a self-signed certificate trusted by user's trust store") {
-            val trustedCertificate = autoClose(WindowsTrustedCertificateContainer.createAndTrust("User-trusted certificate for okhttp-system-keystore tests running at $now", CertificateScope.User))
-            val trustedServer = autoClose(createServer(trustedCertificate.heldCertificate))
-            val url = trustedServer.url("/")
-
-            test("should be able to make requests") {
-                requestShouldSucceed(url)
-            }
-        }
-
-        context("connecting to a server that presents a certificate signed by a CA trusted by the user's trust store") {
-            val trustedCACertificate = autoClose(WindowsTrustedCertificateContainer.createAndTrust("User-trusted CA certificate for okhttp-system-keystore tests running at $now", CertificateScope.User, isCertificateAuthority = true))
-            val serverCertificateFromTrustedCA = TestCertificate("Server certificate signed by user-trusted CA certificate", signedBy = trustedCACertificate.certificate)
-            val serverUsingCertificateFromTrustedCA = autoClose(createServer(serverCertificateFromTrustedCA.heldCertificate))
-            val url = serverUsingCertificateFromTrustedCA.url("/")
-
-            test("should be able to make requests") {
-                requestShouldSucceed(url)
-            }
-        }
-
         context("connecting to a server that presents a self-signed certificate trusted by machine's trust store") {
-            val trustedCertificate = autoClose(WindowsTrustedCertificateContainer.createAndTrust("Machine-trusted certificate for okhttp-system-keystore tests running at $now", CertificateScope.Machine))
+            val trustedCertificate = autoClose(WindowsTrustedCertificateContainer.createAndTrust("Machine-trusted certificate for okhttp-system-keystore tests running at $now"))
             val trustedServer = autoClose(createServer(trustedCertificate.heldCertificate))
             val url = trustedServer.url("/")
 
@@ -142,7 +121,7 @@ class ExtensionsTest : FunSpec({
         }
 
         context("connecting to a server that presents a certificate signed by a CA trusted by the machine's trust store") {
-            val trustedCACertificate = autoClose(WindowsTrustedCertificateContainer.createAndTrust("Machine-trusted CA certificate for okhttp-system-keystore tests running at $now", CertificateScope.Machine, isCertificateAuthority = true))
+            val trustedCACertificate = autoClose(WindowsTrustedCertificateContainer.createAndTrust("Machine-trusted CA certificate for okhttp-system-keystore tests running at $now", isCertificateAuthority = true))
             val serverCertificateFromTrustedCA = TestCertificate("Server certificate signed by machine-trusted CA certificate", signedBy = trustedCACertificate.certificate)
             val serverUsingCertificateFromTrustedCA = autoClose(createServer(serverCertificateFromTrustedCA.heldCertificate))
             val url = serverUsingCertificateFromTrustedCA.url("/")
