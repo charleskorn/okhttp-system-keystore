@@ -57,7 +57,7 @@ Run linting and tests with `./gradlew check`.
 
 ### macOS-specific notes
 
-The tests need to temporarily add certificates to your local Keychain. Therefore, when the tests run you will need to approve adding each certificate (two in total) by entering your password or using Touch ID. 
+The tests need to temporarily add certificates to your local keychain. Therefore, when the tests run you will need to approve adding each certificate (two in total) by entering your password or using Touch ID. 
 
 ### Windows-specific notes
 
