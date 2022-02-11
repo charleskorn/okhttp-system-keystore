@@ -22,7 +22,7 @@ import java.nio.file.Files
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.6.10"
     id("com.diffplug.spotless") version "6.2.2"
-    id("org.ajoberstar.reckon") version "0.13.2"
+    id("org.ajoberstar.reckon") version "0.14.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     `maven-publish`
     signing
