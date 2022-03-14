@@ -39,8 +39,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     api("com.squareup.okhttp3:okhttp:4.9.3")
 
-    testImplementation("io.kotest:kotest-runner-junit5:5.2.0")
-    testImplementation("io.kotest:kotest-assertions-core:5.2.0")
+    testImplementation("io.kotest:kotest-runner-junit5:5.2.1")
+    testImplementation("io.kotest:kotest-assertions-core:5.2.1")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.3")
     testImplementation("com.squareup.okhttp3:okhttp-tls:4.9.3")
 }
