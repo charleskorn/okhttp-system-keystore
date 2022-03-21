@@ -46,14 +46,14 @@ jobs:
 
       - name: Cache Gradle
         id: cache-gradle
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3.0.0
         with:
           path: ~/.gradle/wrapper/dists
           key: gradle-wrapper-${{ hashFiles('gradle/wrapper/*') }}
 
       - name: Cache packages
         id: cache-packages
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3.0.0
         with:
           path: ~/.gradle/caches
           key: gradle-packages-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/*') }}
@@ -112,14 +112,14 @@ jobs:
 
       - name: Cache Gradle
         id: cache-gradle
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3.0.0
         with:
           path: ~/.gradle/wrapper/dists
           key: gradle-wrapper-${{ hashFiles('gradle/wrapper/*') }}
 
       - name: Cache packages
         id: cache-packages
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3.0.0
         with:
           path: ~/.gradle/caches
           key: gradle-packages-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/*') }}
