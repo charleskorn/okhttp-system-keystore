@@ -10,13 +10,22 @@ Supports Keychain on macOS and Certificate Store on Windows, in addition to any 
 
 ## Why would you want to do this?
 
-Many organisations configure encryption-terminating proxies to intercept and examine traffic flowing
-through their networks. In order to do this, they must add a trusted root CA certificate to all client machines, or else any HTTPs traffic
-will be flagged as using an untrusted certificate. In most situations, this certificate is only added to the operating system's native
-certificate trust system, and not the local JVM's keystore.
+There are a couple of scenarios where using the operating system certificate trust system can be useful:
+
+* when communicating with servers that present a self-signed certificate, such as local test servers
+
+* when communicating with servers that present a certificate signed by a private certificate authority (CA), such as private services signed by an 
+  organisation's internal CA
+  
+* when communicating with servers via an encryption-terminating proxy, which is common in corporate environments where network administrators
+  want to be able to intercept and examine all encrypted traffic flowing through their network
+
+In all of these scenarios, it's usually easier to add the certificate required to the operating system's certificate trust store rather than the local JVM's
+default keystore. However, by default, JVM-based applications use only the JVM's default keystore, which means connecting to servers will fail due to not
+trusting the certificate presented. 
 
 This library provides a convenience method to configure OkHttp to use the operating system's native certificate trust system in addition to
-the JVM's default keystore, allowing your application to communicate through a proxy like this without any further configuration.
+the JVM's default keystore, allowing your application to communicate in situations such as these while still verifying that the certificate presented is trustworthy.
 
 ## Setup
 
