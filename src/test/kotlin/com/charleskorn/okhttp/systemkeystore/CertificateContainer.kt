@@ -77,7 +77,7 @@ internal class MacKeychainTrustedCertificateContainer(certificate: TestCertifica
 // This adds a certificate at the machine level.
 // FIXME: Adding certificates at the user level requires clicking 'Yes' on a dialog, and there's no way to avoid this, making automated tests painful.
 // I've manually verified that certificates trusted at the user level are also trusted by the Windows-ROOT JVM KeyStore (see the tests that were
-// removed in the commit where this commit was added).
+// removed in the commit where this comment was added).
 internal class WindowsTrustedCertificateContainer(certificate: TestCertificate) : TrustedCertificateContainer(certificate) {
     override fun addToLocalTrustStore(certificatePath: Path) {
         runProcess("certutil", "-addstore", "root", certificatePath.toString())
