@@ -40,6 +40,21 @@ dependencies {
 Check the [releases page](https://github.com/charleskorn/okhttp-system-keystore/releases) for the latest release information, and the 
 [Maven Central page](https://search.maven.org/artifact/com.charleskorn.okhttp.systemkeystore/okhttp-system-keystore) for examples of how to reference the library in other build systems.
 
+### macOS security note
+
+:warning: On macOS, it's highly recommended that this library only be used with versions of the JDK that contain a fix for JDK-8278449
+("Only Expose Certificates With Proper Trust Settings as Trusted Certificate Entries in macOS KeychainStore").
+
+Without this fix, certificates marked as 'never trust' in your certificate trust settings will be treated as trusted by Java. 
+
+The following versions of the JDK contain a fix for this issue:
+
+* JDK 8: 8u332 or later
+* JDK 11: 11.0.15 or later
+* JDK 17: 17.0.3 or later
+* JDK 18: 18.0.1 or later
+* All versions of JDK 19 or later
+
 ## Usage
 
 Call `useOperatingSystemCertificateTrustStore()` when building your OkHttp client:
