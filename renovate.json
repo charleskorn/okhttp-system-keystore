@@ -46,6 +46,14 @@
             "groupName": "Kotest",
             "matchManagers": ["gradle-lite"],
             "matchPackagePatterns": ["^io\\.kotest:", "^io\\.kotest\\."]
+        },
+        {
+            "groupName": "Spotless",
+            "matchManagers": ["gradle-lite"],
+            "matchPackagePatterns": [
+                "^com\\.diffplug\\.spotless$",
+                "^com\\.diffplug\\.spotless:"
+            ]
         }
     ]
 }
