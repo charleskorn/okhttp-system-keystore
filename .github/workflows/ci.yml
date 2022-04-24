@@ -41,7 +41,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3.1.1
         with:
-          java-version: 17
+          java-version: 11 # We must use Java 15 or earlier until https://youtrack.jetbrains.com/issue/KT-47039 is fixed.
           distribution: adopt
 
       - name: Cache Gradle
@@ -107,7 +107,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3.1.1
         with:
-          java-version: 17
+          java-version: 11 # We must use Java 15 or earlier until https://youtrack.jetbrains.com/issue/KT-47039 is fixed.
           distribution: adopt
 
       - name: Cache Gradle
