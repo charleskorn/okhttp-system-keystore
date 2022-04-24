@@ -17,6 +17,8 @@
 package com.charleskorn.okhttp.systemkeystore
 
 import okhttp3.tls.HeldCertificate
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -119,5 +121,9 @@ private fun runProcess(vararg args: String) {
 
 private val Process.outputText: String
     get() {
-        return this.inputReader(Charsets.UTF_8).readText()
+        InputStreamReader(inputStream, Charsets.UTF_8).use { inputReader ->
+            BufferedReader(inputReader).use { bufferedReader ->
+                return bufferedReader.readText()
+            }
+        }
     }
