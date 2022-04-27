@@ -21,7 +21,7 @@ import java.nio.file.Files
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.6.21"
-    id("com.diffplug.spotless") version "6.5.0"
+    id("com.diffplug.spotless") version "6.5.1"
     id("org.ajoberstar.reckon") version "0.16.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     `maven-publish`
