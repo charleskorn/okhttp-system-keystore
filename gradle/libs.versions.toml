@@ -1,0 +1,18 @@
+[versions]
+kotest = "5.3.0"
+kotlin = "1.6.21"
+okhttp = "4.10.0"
+spotless = "6.7.2"
+
+[libraries]
+kotest-assertions-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
+kotest-runner-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
+okhttp-tls = { group = "com.squareup.okhttp3", name = "okhttp-tls", version.ref = "okhttp" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+publish = { id = "io.github.gradle-nexus.publish-plugin", version = "1.1.0" }
+reckon = { id = "org.ajoberstar.reckon", version = "0.16.1" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

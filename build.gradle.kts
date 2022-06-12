@@ -20,10 +20,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.nio.file.Files
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.6.21"
-    id("com.diffplug.spotless") version "6.7.2"
-    id("org.ajoberstar.reckon") version "0.16.1"
-    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.reckon)
+    alias(libs.plugins.publish)
     `maven-publish`
     signing
 }
@@ -37,12 +37,12 @@ group = "com.charleskorn.okhttp.systemkeystore"
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    api("com.squareup.okhttp3:okhttp:4.10.0")
+    api(libs.okhttp)
 
-    testImplementation("io.kotest:kotest-runner-junit5:5.3.0")
-    testImplementation("io.kotest:kotest-assertions-core:5.3.0")
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.10.0")
-    testImplementation("com.squareup.okhttp3:okhttp-tls:4.9.3")
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.okhttp.mockwebserver)
+    testImplementation(libs.okhttp.tls)
 }
 
 tasks.named<Wrapper>("wrapper") {
