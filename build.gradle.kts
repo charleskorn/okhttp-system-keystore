@@ -37,7 +37,7 @@ group = "com.charleskorn.okhttp.systemkeystore"
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    api("com.squareup.okhttp3:okhttp:4.9.3")
+    api("com.squareup.okhttp3:okhttp:4.10.0")
 
     testImplementation("io.kotest:kotest-runner-junit5:5.3.0")
     testImplementation("io.kotest:kotest-assertions-core:5.3.0")
