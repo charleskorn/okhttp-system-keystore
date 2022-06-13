@@ -1,5 +1,5 @@
 [versions]
-kotest = "5.3.0"
+kotest = "5.3.1"
 kotlin = "1.6.21"
 okhttp = "4.10.0"
 spotless = "6.7.2"
