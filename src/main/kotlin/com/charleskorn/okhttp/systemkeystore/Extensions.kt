@@ -14,6 +14,8 @@
     limitations under the License.
 */
 
+@file:Suppress("ktlint:filename")
+
 package com.charleskorn.okhttp.systemkeystore
 
 import okhttp3.OkHttpClient
