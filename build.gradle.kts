@@ -65,7 +65,7 @@ val licenseText = Files.readString(project.projectDir.resolve("gradle").resolve(
 val kotlinLicenseHeader = "/*\n${licenseText.trimEnd().lines().joinToString("\n") { "    $it".trimEnd() }}\n*/\n\n"
 
 spotless {
-    val ktlintVersion = "0.46.1"
+    val ktlintVersion = "0.47.1"
 
     kotlin {
         ktlint(ktlintVersion)
