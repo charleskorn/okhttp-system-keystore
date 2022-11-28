@@ -1,6 +1,6 @@
 [versions]
 kotest = "5.5.4"
-kotlin = "1.7.21"
+kotlin = "1.7.22"
 okhttp = "4.10.0"
 spotless = "6.12.0"
 
