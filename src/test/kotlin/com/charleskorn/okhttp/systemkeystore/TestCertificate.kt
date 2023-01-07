@@ -22,7 +22,7 @@ import java.net.InetAddress
 internal class TestCertificate(
     val commonName: String,
     val isCertificateAuthority: Boolean = false,
-    val signedBy: TestCertificate? = null
+    val signedBy: TestCertificate? = null,
 ) {
     internal val heldCertificate = buildCertificate()
 

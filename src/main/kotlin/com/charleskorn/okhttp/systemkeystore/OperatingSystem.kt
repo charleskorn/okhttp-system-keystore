@@ -19,7 +19,8 @@ package com.charleskorn.okhttp.systemkeystore
 internal enum class OperatingSystem {
     Mac,
     Windows,
-    Other;
+    Other,
+    ;
 
     companion object {
         internal val current: OperatingSystem = determineCurrentOperatingSystem()
