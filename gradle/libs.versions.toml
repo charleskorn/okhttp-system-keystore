@@ -2,7 +2,7 @@
 kotest = "5.5.5"
 kotlin = "1.8.10"
 okhttp = "4.10.0"
-spotless = "6.14.0"
+spotless = "6.14.1"
 
 [libraries]
 kotest-assertions-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
