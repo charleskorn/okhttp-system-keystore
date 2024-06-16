@@ -95,9 +95,6 @@ jobs:
       - test
       - validate-gradle-wrapper
 
-    env:
-      SONATYPE_USERNAME: okhttp-system-keystore-github-actions
-
     steps:
       - name: Check out code
         uses: actions/checkout@v4.1.7
@@ -128,7 +125,7 @@ jobs:
       - name: Publish snapshot
         run: ./gradlew publishSnapshot
         env:
-          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ env.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_KEY_PASSPHRASE }}
@@ -137,7 +134,7 @@ jobs:
       - name: Publish release
         run: ./gradlew publishRelease
         env:
-          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ env.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_KEY_PASSPHRASE }}
