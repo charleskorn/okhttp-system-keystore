@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v3.4.2
+        uses: gradle/wrapper-validation-action@v3.5.0
 
   test:
     strategy:
