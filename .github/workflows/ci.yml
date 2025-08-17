@@ -10,7 +10,7 @@ defaults:
 jobs:
   validate-gradle-wrapper:
     name: "Validate Gradle wrapper"
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Check out code
@@ -88,7 +88,7 @@ jobs:
 
   publish:
     name: "Publish"
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     needs:
       - test
