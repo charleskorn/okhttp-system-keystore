@@ -89,11 +89,15 @@ jobs:
   publish:
     name: "Publish"
     runs-on: ubuntu-22.04
-    if: github.repository == 'charleskorn/okhttp-system-keystore' && github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
 
     needs:
       - test
       - validate-gradle-wrapper
+
+    permissions:
+      contents: write # Required to be able to publish releases, see https://docs.github.com/en/rest/reference/permissions-required-for-github-apps#permission-on-contents
+      issues: write
+      pull-requests: write
 
     steps:
       - name: Check out code
@@ -106,6 +110,11 @@ jobs:
         with:
           java-version: 11 # We must use Java 15 or earlier until https://youtrack.jetbrains.com/issue/KT-47039 is fixed.
           distribution: adopt
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22
 
       - name: Cache Gradle
         id: cache-gradle
@@ -122,14 +131,41 @@ jobs:
           key: gradle-packages-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/wrapper/*') }}
           restore-keys: gradle-packages-${{ runner.os }}
 
-      - name: Publish snapshot
-        run: ./gradlew publishSnapshot
+      - name: Install release tooling
+        run: npm --prefix=.github/workflows/release clean-install
+
+      - name: Create release
+        run: npx --prefix=.github/workflows/release semantic-release
         env:
-          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
-          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: github.repository == 'charleskorn/okhttp-system-keystore' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+      - name: Build
+        run: ./gradlew assemble
+
+      - name: Get tag
+        id: get_tag
+        run: |
+          echo "Local changes, if any:"
+          git status
+
+          if git describe --tags --abbrev=0 --exact-match >/dev/null; then
+            tag=$(git describe --tags --abbrev=0 --exact-match)
+            echo "Found tag $tag."
+            echo "tag=$tag" >> $GITHUB_OUTPUT
+          else
+            echo "git describe failed, skipping release:"
+            git describe --tags --abbrev=0 --exact-match || true
+            echo "skip=true" >> $GITHUB_OUTPUT
+          fi
+        if: github.repository == 'charleskorn/okhttp-system-keystore' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+      - name: Assemble release
+        run: ./gradlew assembleRelease
+        env:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_KEY_PASSPHRASE }}
-        if: github.repository == 'charleskorn/okhttp-system-keystore' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.repository == 'charleskorn/okhttp-system-keystore' && github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.get_tag.outputs.skip != 'true'
 
       - name: Publish release
         run: ./gradlew publishRelease
@@ -138,4 +174,15 @@ jobs:
           ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_KEY }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_KEY_PASSPHRASE }}
-        if: github.repository == 'charleskorn/okhttp-system-keystore' && startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
+        if: github.repository == 'charleskorn/okhttp-system-keystore' && github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.get_tag.outputs.skip != 'true'
+
+      - name: Add artifacts to GitHub release
+        uses: softprops/action-gh-release@v2.3.2
+        with:
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          files: build/release/*
+          fail_on_unmatched_files: true
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: github.repository == 'charleskorn/okhttp-system-keystore' && github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.get_tag.outputs.skip != 'true'
