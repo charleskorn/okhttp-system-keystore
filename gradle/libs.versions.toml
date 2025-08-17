@@ -14,5 +14,5 @@ okhttp-tls = { group = "com.squareup.okhttp3", name = "okhttp-tls", version.ref 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 publish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
-reckon = { id = "org.ajoberstar.reckon", version = "0.18.3" }
+reckon = { id = "org.ajoberstar.reckon", version = "0.19.2" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
