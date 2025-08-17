@@ -1,11 +1,14 @@
 {
     "extends": [
         "config:base",
+        "docker:enableMajor",
         ":prHourlyLimitNone",
         ":prConcurrentLimitNone",
         ":switchToGradleLite",
         ":disableDependencyDashboard",
-        "docker:enableMajor"
+        ":semanticCommits",
+        ":semanticCommitTypeAll(deps)",
+        ":semanticCommitScopeDisabled"
     ],
     "reviewers": [
         "charleskorn"
@@ -45,7 +48,8 @@
         {
             "groupName": "Kotest",
             "matchManagers": ["gradle-lite"],
-            "matchPackagePatterns": ["^io\\.kotest:", "^io\\.kotest\\."]
+            "matchPackagePatterns": ["^io\\.kotest:", "^io\\.kotest\\."],
+            "semanticCommitScope": "internal"
         },
         {
             "groupName": "Spotless",
@@ -53,7 +57,25 @@
             "matchPackagePatterns": [
                 "^com\\.diffplug\\.spotless$",
                 "^com\\.diffplug\\.spotless:"
-            ]
+            ],
+            "semanticCommitScope": "internal"
+        },
+        {
+            "matchPaths": [
+                ".github/workflows/**/*",
+                ".github/workflows/*.yml",
+                "+(batect)",
+                "+(batect.cmd)",
+                "+(batect.yml)"
+            ],
+            "semanticCommitScope": "internal"
+        },
+        {
+            "matchManagers": [
+                "github-actions",
+                "gradle-wrapper"
+            ],
+            "semanticCommitScope": "internal"
         }
     ]
 }
