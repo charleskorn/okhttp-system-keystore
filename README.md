@@ -1,3 +1,12 @@
+# okhttp-system-keystore is no longer maintained
+
+I am no longer actively using okhttp-system-keystore and do not have time to maintain it properly, and so this project is now archived.
+
+The source code and published artifacts will remain available for the foreseeable future.
+
+Maintained forks are welcome and encouraged.
+
+
 # okhttp-system-keystore
 
 [![CI](https://github.com/charleskorn/okhttp-system-keystore/actions/workflows/ci.yml/badge.svg)](https://github.com/charleskorn/okhttp-system-keystore/actions/workflows/ci.yml)
