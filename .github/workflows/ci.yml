@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.3.1
         with:
           fetch-depth: 0
       - name: Validate Gradle wrapper
@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.3.1
         with:
           fetch-depth: 0
 
@@ -101,7 +101,7 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4.3.1
         with:
           fetch-depth: 0
 
